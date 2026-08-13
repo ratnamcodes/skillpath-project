@@ -1,17 +1,6 @@
 import { addPropertyControls, ControlType } from "framer"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
-/**
- * Skillpath — courses section.
- *
- * One file because it is pasted into Framer's editor; a split module can
- * silently drift from what is published.
- */
-
-// ═══════════════════════════════════════════════════════════════════════════
-// CONTRACT
-// ═══════════════════════════════════════════════════════════════════════════
-
 /** The API fields this component reads. */
 interface Course {
     courseName: string
@@ -27,19 +16,12 @@ interface Course {
 
 type CountryCode = "IN" | "US"
 
-/**
- * Failure bodies are `{"detail":"gg"}` / `{"detail":"this aint working dawg"}`.
- * The UI cannot print what it was never given.
- */
 type CoursesState =
     | { status: "loading" }
     | { status: "error" }
-    /** API returned zero courses — distinct from a search that matched nothing. */
     | { status: "empty" }
-    /** Invariant: `courses` is never empty here — zero-length becomes `empty`. */
     | { status: "ready"; courses: Course[] }
 
-// Currency errors never hide the grid—if country lookup fails, just use a default price.
 type CurrencyState =
     | { status: "resolving" }
     | { status: "resolved"; country: CountryCode; source: "api" | "fallback" }
@@ -50,18 +32,8 @@ interface CourseDataResult {
     retryCourses: () => void
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// DATA LAYER
-// Both endpoints are plain GETs. Every other method returns 405.
-// ═══════════════════════════════════════════════════════════════════════════
-
 const COURSES_ENDPOINT = "https://syncsphere-hiv6.onrender.com/assignment/course-data"
 const COUNTRY_ENDPOINT = "https://syncsphere-hiv6.onrender.com/assignment/country-code"
-
-/**
- * Three attempts turn the API's ~66% single-request success rate into ~96%.
- * The failures are independent, so a short flat delay is enough.
- */
 const MAX_ATTEMPTS = 3
 const RETRY_DELAY_MS = 250
 
@@ -72,23 +44,14 @@ type Outcome = { ok: true; value: unknown } | { ok: false }
 async function loadJson(url: string, signal: AbortSignal): Promise<Outcome> {
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-            // No method, headers, body or credentials: this is a plain GET.
             const response = await fetch(url, { signal })
-
-            if (response.ok) {
-                return { ok: true, value: await response.json() }
-            }
-
-            // Failure bodies are logged for diagnosis and never shown to users.
+            if (response.ok) return { ok: true, value: await response.json() }
             console.warn(`[Skillpath] ${url} responded ${response.status}`, await response.text())
         } catch (error) {
-            if (signal.aborted) throw error
-            console.warn(`[Skillpath] ${url} request failed`, error)
+            if (signal.aborted) throw error; console.warn(`[Skillpath] ${url} request failed`, error)
         }
-
         if (attempt < MAX_ATTEMPTS) await delay(RETRY_DELAY_MS)
     }
-
     return { ok: false }
 }
 
@@ -112,7 +75,7 @@ function parseCountry(value: unknown): CountryCode | null {
     return code === "IN" || code === "US" ? code : null
 }
 
-function useCourseData(): CourseDataResult {
+function useCourseData(fallbackCountry: CountryCode): CourseDataResult {
     const [courses, setCourses] = useState<CoursesState>({ status: "loading" })
     const [currency, setCurrency] = useState<CurrencyState>({ status: "resolving" })
     const [attempt, setAttempt] = useState(0)
@@ -140,14 +103,11 @@ function useCourseData(): CourseDataResult {
                         : { status: "ready", courses: outcome.value }
                 )
             })
-            .catch(() => {
-                /* aborted on unmount */
-            })
+            .catch(() => {/* aborted on unmount */})
 
         return () => controller.abort()
     }, [attempt])
 
-    // Currency is independent: failure falls back to INR and never blocks courses.
     useEffect(() => {
         const controller = new AbortController()
 
@@ -157,13 +117,11 @@ function useCourseData(): CourseDataResult {
                 const detectedCountry = outcome.ok ? parseCountry(outcome.value) : null
                 setCurrency({
                     status: "resolved",
-                    country: detectedCountry ?? "IN",
+                    country: detectedCountry ?? fallbackCountry,
                     source: detectedCountry ? "api" : "fallback",
                 })
             })
-            .catch(() => {
-                /* aborted on unmount */
-            })
+            .catch(() => {/* aborted on unmount */})
 
         return () => controller.abort()
     }, [])
@@ -171,10 +129,7 @@ function useCourseData(): CourseDataResult {
     return { courses, currency, retryCourses }
 }
 
-/**
- * Formatters are built once. Rupees allow 0–2 fraction digits so whole rupees
- * render as "₹1,999" without silently rounding if a price ever includes paise.
- */
+
 const RUPEES = new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -183,17 +138,13 @@ const RUPEES = new Intl.NumberFormat("en-IN", {
 })
 const DOLLARS = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" })
 
-/** Both fields are minor units. Skipping `/ 100` is the brief's instant fail. */
 function formatPrice(course: Course, country: CountryCode): string {
     return country === "IN"
         ? RUPEES.format(course.pricePaise / 100)
         : DOLLARS.format(course.priceUsdCents / 100)
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
 // DESIGN TOKENS — sampled from webveda.com so the section sits in the brand.
-// ═══════════════════════════════════════════════════════════════════════════
-
 const T = {
     ink: "#070815",
     brand: "#4353CF",
@@ -332,9 +283,7 @@ select.sp-field {
 }
 `
 
-// ═══════════════════════════════════════════════════════════════════════════
-// PIECES
-// ═══════════════════════════════════════════════════════════════════════════
+// -------------------------------- PIECES --------------------------------
 
 function CheckMark() {
     return (
@@ -369,7 +318,6 @@ function CourseCard({ course, price }: { course: Course; price: string | null })
     )
 }
 
-/** Six skeletons: two even rows at 3-col, three at 2-col, just under median 7. */
 function SkeletonGrid() {
     return (
         <ul className="sp-grid" aria-hidden="true">
@@ -402,15 +350,29 @@ function MessagePanel({ title, body, action }: { title: string; body: string; ac
     )
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// COMPONENT
-// ═══════════════════════════════════════════════════════════════════════════
+// -------------------------------- COMPONENT --------------------------------
 
 type SortKey = "recommended" | "priceAsc" | "priceDesc"
+type PreviewState = "auto" | "loading" | "empty" | "error"
+
+function applyPreview(preview: PreviewState, live: CoursesState): CoursesState {
+    switch (preview) {
+        case "loading":
+            return { status: "loading" }
+        case "empty":
+            return { status: "empty" }
+        case "error":
+            return { status: "error" }
+        default:
+            return live
+    }
+}
 
 interface CourseGridProps {
     heading: string
     subheading: string
+    fallbackCurrency: CountryCode
+    preview: PreviewState
 }
 
 /**
@@ -423,9 +385,12 @@ export default function CourseGrid(props: Partial<CourseGridProps>) {
     const {
         heading = "Expert Courses",
         subheading = "In-depth courses launched every week — from the best instructors in the country.",
+        fallbackCurrency = "IN",
+        preview = "auto",
     } = props
 
-    const data = useCourseData()
+    const data = useCourseData(fallbackCurrency)
+    const courses = applyPreview(preview, data.courses)
 
     const [query, setQuery] = useState("")
     const [sort, setSort] = useState<SortKey>("recommended")
@@ -437,7 +402,7 @@ export default function CourseGrid(props: Partial<CourseGridProps>) {
     const showCurrencySwitch =
         data.currency.status === "resolved" && data.currency.source === "fallback"
 
-    const all = data.courses.status === "ready" ? data.courses.courses : []
+    const all = courses.status === "ready" ? courses.courses : []
 
     const visible = useMemo(() => {
         const q = query.trim().toLowerCase()
@@ -452,7 +417,7 @@ export default function CourseGrid(props: Partial<CourseGridProps>) {
     }, [all, query, sort, country])
 
     const [firstWord, ...restWords] = heading.split(" ")
-    const currencyBusy = data.courses.status === "ready" && country === null
+    const currencyBusy = courses.status === "ready" && country === null
 
     return (
         <div className="sp-root" id="courses">
@@ -464,7 +429,7 @@ export default function CourseGrid(props: Partial<CourseGridProps>) {
                 </h2>
                 <p className="sp-sub">{subheading}</p>
 
-                {data.courses.status === "ready" && (
+                {courses.status === "ready" && (
                     <div className="sp-toolbar">
                         <div className="sp-search">
                             <input
@@ -506,11 +471,11 @@ export default function CourseGrid(props: Partial<CourseGridProps>) {
 
                 <div
                     className="sp-region"
-                    aria-busy={data.courses.status === "loading" || currencyBusy}
+                    aria-busy={courses.status === "loading" || currencyBusy}
                 >
-                    {data.courses.status === "loading" && <SkeletonGrid />}
+                    {courses.status === "loading" && <SkeletonGrid />}
 
-                    {data.courses.status === "error" && (
+                    {courses.status === "error" && (
                         <MessagePanel
                             title="Uh-oh, something went wrong"
                             body="We couldn't load the courses right now. Please try again."
@@ -518,7 +483,7 @@ export default function CourseGrid(props: Partial<CourseGridProps>) {
                         />
                     )}
 
-                    {data.courses.status === "empty" && (
+                    {courses.status === "empty" && (
                         <MessagePanel
                             title="No courses yet"
                             body="New courses go live every week. Check back shortly, or reload to see if any have landed."
@@ -526,7 +491,7 @@ export default function CourseGrid(props: Partial<CourseGridProps>) {
                         />
                     )}
 
-                    {data.courses.status === "ready" &&
+                    {courses.status === "ready" &&
                         (visible.length === 0 ? (
                             <MessagePanel
                                 title={`No courses match “${query.trim()}”`}
@@ -562,5 +527,21 @@ addPropertyControls(CourseGrid, {
         title: "Subheading",
         defaultValue: "In-depth courses launched every week — from the best instructors in the country.",
         displayTextArea: true,
+    },
+    fallbackCurrency: {
+        type: ControlType.Enum,
+        title: "Fallback",
+        defaultValue: "IN",
+        options: ["IN", "US"],
+        optionTitles: ["Rupees (₹)", "US dollars ($)"],
+        description: "Currency to show when we cannot detect the visitor's region.",
+    },
+    preview: {
+        type: ControlType.Enum,
+        title: "Preview",
+        defaultValue: "auto",
+        options: ["auto", "loading", "empty", "error"],
+        optionTitles: ["Live data", "Loading", "No courses", "Failed"],
+        description: "Force a state to design against. Leave on Live data when publishing.",
     },
 })

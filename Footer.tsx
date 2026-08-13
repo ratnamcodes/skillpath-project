@@ -1,7 +1,5 @@
 import { addPropertyControls, ControlType } from "framer"
 
-/** Skillpath — footer. Three links and a copyright line, per the brief. */
-
 const T = {
     surface: "#F3F4F6",
     rule: "#E3E4EA",

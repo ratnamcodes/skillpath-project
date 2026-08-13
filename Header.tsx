@@ -1,7 +1,5 @@
 import { addPropertyControls, ControlType } from "framer"
 
-/** Skillpath — header. Wordmark, three nav links, one join button. */
-
 const T = {
     ink: "#070815",
     brand: "#4353CF",

@@ -1,10 +1,5 @@
 import { addPropertyControls, ControlType } from "framer"
 
-/**
- * Skillpath — hero. Headline, one line, one button.
- * Decorative bits are CSS only: two glows, a dot grid, and an underline stroke.
- */
-
 const T = {
     ink: "#070815",
     brand: "#4353CF",

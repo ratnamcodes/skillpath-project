@@ -1,32 +1,28 @@
-# Skillpath Submission
+## Heyyyy, this is Ratnam
 
-- **Published page:** [View the Framer site](https://skillpath-courses.framer.website)
-- **Main component:** [CourseGrid.tsx](./CourseGrid.tsx)
+[See the published page](https://skillpath-courses.framer.website)
+[read the main CourseGrid component](./CourseGrid.tsx).
 
-## Implementation
+### How I approached it
 
-The course grid fetches both APIs independently using GET and handles loading,
-error, empty, and working states. It formats INR and USD correctly, falls back
-to INR when country detection fails, supports responsive 3/2/1 columns and two
-Framer controls, and includes search, price sorting, skeleton loaders, retry,
-and refundable badges.
+I fetch the course and country data separately using GET. This means a failed country request never takes down valid course data. Courses have clear loading, error, empty, and working states. If country detection fails after three attempts, prices fall back to the currency chosen in Framer and the INR/USD switch becomes available.
 
-## Short note
+Once the main flow was reliable, I added search, price sorting, skeleton loaders, retry, refundable badges, four Framer controls, and a responsive three, two, and one column layout.
 
-If I had two more days, I would use the browser language and region settings as
-a backup when the country code API fails.
+The hardest part was keeping the two unreliable requests independent without
+making the UI confusing.
 
-The main challenge was handling the course and country APIs separately because
-either one can fail. Course failures now show a retry screen. Country failures
-do not block the course grid.
+### What I would improve
 
-I am not fully happy that the cards are not clickable because the API does not
-provide a course URL. A false refundable value is also shown by leaving out the
-badge, which could be clearer.
+With two more days, I would use the browser language and region settings as a fallback when the country API fails. I'd also add more Framer controls to make the component even more customizable for designers.
 
-## AI tools
+I am still not fully happy that the cards are not clickable because the API does not provide a course URL. A false refundable value is also shown by leaving out the badge, which could be clearer.
 
-- **Claude Web, Opus 5 Max:** Used for research. [View the research chat](https://claude.ai/share/a1975351-ba24-42f7-92da-fe6e49e6985c)
-- **Claude Code, Opus 5 in Ultracode mode:** Used for coding. [Download the coding session](./ai_chats/opus5_coding_session-export-1786597783397.zip)
-- **Claude Fable 5 in Ultracode mode:** Used for the final review. [Download the review session](./ai_chats/fable_review_session-export-1786598320261.zip)
+### How I used AI
+
+I used AI at different stages and reviewed the final choices myself.
+
+- **Claude Web, Opus 5 Max:** Research and early planning. [View the research chat](https://claude.ai/share/a1975351-ba24-42f7-92da-fe6e49e6985c)
+- **Claude Code, Opus 5 in Ultracode mode:** Building and refactoring. [Download the coding session](./ai_chats/opus5_coding_session-export-1786597783397.zip)
+- **Claude Fable 5 in Ultracode mode:** Final review. [Download the review session](./ai_chats/fable_review_session-export-1786598320261.zip)
 
