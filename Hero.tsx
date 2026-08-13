@@ -96,7 +96,7 @@ const STYLES = `
 .sp-hero-cta:active { transform: translateY(1px); }
 .sp-hero-arrow { transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1); }
 .sp-hero-cta:hover .sp-hero-arrow { transform: translateX(4px); }
-.sp-hero :focus-visible { outline: 2px solid ${T.brandLift}; outline-offset: 3px; border-radius: 4px; }
+.sp-hero :focus-visible { outline: 2px solid ${T.brandLift}; outline-offset: 3px; }
 @container (max-width: 809px) { .sp-hero-inner { padding: 56px 24px; } }
 @media (prefers-reduced-motion: reduce) {
   .sp-hero *, .sp-hero *::before, .sp-hero *::after {

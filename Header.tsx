@@ -33,7 +33,9 @@ const STYLES = `
   text-decoration: none; white-space: nowrap; display: inline-block;
 }
 .sp-hd-join:hover { background: ${T.brandDeep}; }
-.sp-hd :focus-visible { outline: 2px solid ${T.brand}; outline-offset: 3px; border-radius: 4px; }
+.sp-hd :focus-visible { outline: 2px solid ${T.brand}; outline-offset: 3px; }
+/* Radius only on the bare links; the Join button keeps its own 8px. */
+.sp-hd-mark:focus-visible, .sp-hd-link:focus-visible { border-radius: 4px; }
 @container (max-width: 809px) {
   .sp-hd-nav { display: none; }
 }

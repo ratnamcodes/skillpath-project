@@ -322,7 +322,8 @@ select.sp-field {
 .sp-btn:hover { background: ${T.brandDeep}; }
 .sp-btn:active { transform: translateY(1px); }
 
-.sp-root :focus-visible { outline: 2px solid ${T.brand}; outline-offset: 2px; border-radius: 4px; }
+/* No border-radius here: every focusable control declares its own, and the outline follows it. */
+.sp-root :focus-visible { outline: 2px solid ${T.brand}; outline-offset: 2px; }
 /* Keyframes end at the natural state, so reducing motion leaves a composed page. */
 @media (prefers-reduced-motion: reduce) {
   .sp-root *, .sp-root *::before, .sp-root *::after {
