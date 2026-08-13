@@ -1,6 +1,7 @@
 ## Heyyyy, this is Ratnam
 
 [See the published page](https://skillpath-courses.framer.website)
+
 [read the main CourseGrid component](./CourseGrid.tsx).
 
 ### How I approached it
